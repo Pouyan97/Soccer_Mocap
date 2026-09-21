@@ -216,3 +216,22 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ---------------------------------------------------------------------------
+# Soccer_Mocap
+# ---------------------------------------------------------------------------
+# Footage, model weights and results are large, regenerable, or both, and in
+# the case of footage often not ours to redistribute.
+data/raw/*
+data/processed/*
+!data/**/.gitkeep
+
+models/*
+!models/.gitkeep
+
+outputs/*
+!outputs/.gitkeep
+
+# Gradio's upload/flag scratch space
+flagged/
+gradio_cached_examples/

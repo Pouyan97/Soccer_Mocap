@@ -1,0 +1,59 @@
+# Default pipeline configuration.
+#
+#   soccer-mocap run clip.mp4 -c configs/default.yaml
+#
+# Every key here matches a field in soccer_mocap.config.PipelineConfig, and
+# unknown keys are rejected rather than ignored - a silently-dropped typo is
+# how you end up believing you ran something you did not.
+name: default
+
+video:
+  # "auto" infers the phone from the file's own metadata. Run
+  # `soccer-mocap devices` for the full list of presets.
+  device_preset: auto
+  # null takes the preset's recommendation. Override with fast/balanced/accurate.
+  profile: null
+  apply_rotation: true
+  start_s: null
+  end_s: null
+  decoder: auto
+
+pose:
+  # "auto" picks the lightest installed backend.
+  backend: mediapipe
+  min_joint_confidence: 0.3
+  min_person_confidence: 0.4
+  backend_options: {}
+
+tracking:
+  enabled: true
+  method: iou
+  iou_threshold: 0.3
+  max_age: 30
+  min_hits: 3
+  duplicate_iou: 0.6
+
+calibration:
+  # Turn this on and supply four or more correspondences to get pitch metres.
+  # Pitch coordinates are in metres with the origin at the centre spot.
+  enabled: false
+  method: manual
+  image_points: []
+  pitch_points: []
+  assumed_player_height_m: 1.80
+
+analysis:
+  # 6 Hz is the convention for whole-body movement. Raise it for fast limbs.
+  filter_cutoff_hz: 6.0
+  filter_order: 4
+  kinematics: true
+  events: true
+
+goalkeeper:
+  enabled: false
+
+output:
+  directory: outputs
+  formats: [json]
+  overlay_video: true
+  report: true

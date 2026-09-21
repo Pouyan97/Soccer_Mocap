@@ -1,0 +1,88 @@
+# Soccer_Mocap conda/mamba environment.
+#
+#   mamba env create -f environment.yml
+#   mamba activate soccer-mocap
+#   pip install -e .          # editable install of src/soccer_mocap
+#
+# Everything that has a clean conda-forge package is installed by mamba.
+# The `pip:` block below is deliberately small; each entry is there for a
+# specific reason documented inline. See docs/setup.md.
+name: soccer-mocap
+
+channels:
+  - conda-forge
+
+dependencies:
+  # ---- interpreter -------------------------------------------------------
+  # 3.11 is the sweet spot: mediapipe, ultralytics and torch all ship wheels.
+  - python=3.11
+  - pip
+
+  # ---- numerics ----------------------------------------------------------
+  - numpy>=1.26
+  - scipy>=1.11
+  - pandas>=2.1
+  - pyarrow>=15          # parquet export of pose tables
+
+  # ---- video i/o ---------------------------------------------------------
+  # PyAV gives us reliable HEVC/H.265 decoding, which is what iPhones record,
+  # plus access to container-level rotation metadata that phones set instead
+  # of physically rotating the frames.
+  - av>=12
+
+  # ---- config / plumbing -------------------------------------------------
+  - pyyaml>=6
+  - pydantic>=2.6
+  - tqdm>=4.66
+  - rich>=13
+
+  # ---- demo app ----------------------------------------------------------
+  - gradio>=4.44
+
+  # ---- figures -----------------------------------------------------------
+  - matplotlib>=3.8
+
+  # ---- dev ---------------------------------------------------------------
+  - pytest>=8
+  - pytest-cov
+  - ruff
+
+  - pip:
+      # PyTorch for Blackwell (RTX 50-series, sm_120) needs the CUDA 12.8
+      # wheels; the conda-forge builds are not compiled for sm_120.
+      #
+      # The versions are pinned WITH the +cu128 local tag on purpose. This is
+      # an --extra-index-url, so PyPI stays in the resolution set, and PyPI
+      # publishes higher torch versions that are CPU-only on Windows. Left
+      # unpinned, pip picks the higher number and silently installs a CPU
+      # build on a machine with a perfectly good GPU.
+      #
+      # No NVIDIA GPU? Replace the two pins with plain `torch`/`torchvision`
+      # and drop the index URL.
+      - --extra-index-url https://download.pytorch.org/whl/cu128
+      - torch==2.11.0+cu128
+      - torchvision==0.26.0+cu128
+
+      # Pillow must come from PyPI, not conda-forge, even though conda-forge
+      # has it. torchvision ships its own jpeg8/zlib/libpng DLLs and puts its
+      # package directory on the Windows DLL search path; conda-forge's
+      # Pillow then resolves _imaging against those incompatible copies and
+      # dies with "DLL load failed". The PyPI wheel bundles its own codecs
+      # and is unaffected. Listing it here keeps a fresh env from racing into
+      # the same breakage.
+      - pillow>=11
+
+      # opencv-contrib-python rather than conda-forge `opencv`: mediapipe
+      # hard-depends on the pip distribution, and installing both puts two
+      # different cv2 modules on the path. One source of cv2 only.
+      - opencv-contrib-python>=4.10
+
+      # No conda-forge build exists for Windows. Note that mediapipe 1.0
+      # removed the bundled `mp.solutions` models, so after creating the
+      # environment you must also run:
+      #     python scripts/download_models.py mediapipe
+      - mediapipe>=1.0
+
+      # Pulled by pip so it resolves against the pip torch above instead of
+      # dragging in a second, conda-forge pytorch.
+      - ultralytics>=8.3

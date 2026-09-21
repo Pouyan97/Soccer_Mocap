@@ -1,0 +1,27 @@
+# Fastest useful pass, for checking framing on a laptop before a real run.
+#
+#   soccer-mocap run clip.mp4 -c configs/phone_quick.yaml
+name: phone_quick
+
+video:
+  device_preset: auto
+  profile: fast          # 640 px long edge, every other frame
+
+pose:
+  backend: mediapipe
+  backend_options:
+    model_complexity: 0
+
+tracking:
+  enabled: true
+  min_hits: 1            # a short preview never reaches 3 hits
+
+analysis:
+  filter_cutoff_hz: 6.0
+  events: false          # not meaningful at this frame stride
+
+output:
+  directory: outputs
+  formats: [json]
+  overlay_video: true
+  report: false

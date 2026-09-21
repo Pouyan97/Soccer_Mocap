@@ -1,0 +1,64 @@
+# Goalkeeper analysis.
+#
+#   soccer-mocap run keeper.mp4 -c configs/goalkeeper.yaml
+#
+# Before running, replace `goal_posts` below with the pixel positions of the
+# foot of each post in YOUR clip. The demo app's Goalkeeper tab gives you
+# those by tapping the two posts, or read them off any frame in an image
+# viewer. They are what convert pixels into metres.
+name: goalkeeper
+
+video:
+  device_preset: auto
+  # Dives last a fraction of a second, so never stride frames away here.
+  profile: balanced
+  apply_rotation: true
+
+pose:
+  backend: mediapipe
+  min_joint_confidence: 0.3
+  min_person_confidence: 0.4
+
+tracking:
+  enabled: true
+  # A diving body flips from tall-and-narrow to short-and-wide within a few
+  # frames, so IoU alone loses the track. Keeping the threshold modest lets
+  # the centre-distance fallback do its job.
+  iou_threshold: 0.25
+  max_age: 45
+  min_hits: 2
+  duplicate_iou: 0.6
+
+analysis:
+  # Higher than the 6 Hz default: the takeoff transient is real signal, and
+  # 6 Hz rounds the peak off.
+  filter_cutoff_hz: 8.0
+
+goalkeeper:
+  enabled: true
+
+  # "auto" scores every track on proximity to the goal, containment within
+  # the mouth, and stillness. Use "manual" plus track_id when it guesses
+  # wrong - check the overlay video to find the right id.
+  identification: auto
+  track_id: null
+
+  # [[left_post_x, left_post_y], [right_post_x, right_post_y]] in pixels,
+  # at the FOOT of each post where it meets the grass.
+  goal_posts: [[300, 300], [1000, 300]]
+
+  goal_width_m: 7.32
+  goal_height_m: 2.44
+
+  # Body-heights per second. Lower to catch quick sidesteps, raise to report
+  # only committed dives.
+  dive_speed_threshold: 1.2
+  min_dive_frames: 4
+  # Trunk lean that separates a dive from a fast sidestep.
+  dive_lean_threshold_deg: 25.0
+
+output:
+  directory: outputs
+  formats: [json, csv]
+  overlay_video: true
+  report: true
